@@ -7,8 +7,10 @@ import logging, hashlib, os, time
 def hash_(string):
     return hashlib.sha1(string.encode()).hexdigest()
 
+
 def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
+
 
 def timeit(f):
 
@@ -22,26 +24,19 @@ def timeit(f):
 
     return timed
 
+
 def log(name, filename=None):
-    # создаём logger
     logger = logging.getLogger(name)
     logger.setLevel( logging.DEBUG )
 
-    # создаём консольный handler и задаём уровень
     if filename:
         ch = logging.FileHandler(filename)
     else:
         ch = logging.StreamHandler()
 
     ch.setLevel(logging.DEBUG)
-
-    # создаём formatter
     formatter = logging.Formatter('%(asctime)s : %(lineno)d : %(name)s : %(levelname)s : %(message)s')
-    # %(lineno)d :
-    # добавляем formatter в ch
     ch.setFormatter(formatter)
-
-    # добавляем ch к logger
     logger.addHandler(ch)
 
     # logger.debug('debug message')
