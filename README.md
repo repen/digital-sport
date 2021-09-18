@@ -14,7 +14,11 @@
 
 2. Для работы библиотеки нужен апи токен, который дает доступ к информации.
 	
-	Апи токен можно получить на сайте [data-provider.ru](https://data-provider.ru).
+
+Апи токен можно получить:
+    
+- в телеграм боте @sport_api_bot (/help).
+- на сайте [data-provider.ru](https://data-provider.ru).
 
 #### Установить токен
 
@@ -22,12 +26,10 @@
 from sport.api import FootballSport
 
 token = "Your token"
-football = FootballSport(token)
+football = FootballSport(token, debug=True)
 ```
 
 #### Получить live матчи.
-
-*обновление 1 раз в секунду.*
 
 ```
 fixtures = football.live()
@@ -38,7 +40,6 @@ print(fixtures)
 
 Необходим id матча.
 
-*обновление 1 раз в 15 секунд.*
 ```
 # Статистика матча
 data = football.statistics("match_id")
@@ -53,7 +54,6 @@ print(data)
 data = football.odds("match_id")
 print(data)
 ```
-
 
 #### Получить последние/очные игры команд
 
