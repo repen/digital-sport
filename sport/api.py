@@ -13,9 +13,10 @@ logger = log(__name__)
 
 class FootballSport(AbstractSport):
 
-    def __init__(self, token: str, base_url:str=""):
+    def __init__(self, token: str, base_url:str="", debug=False):
         self.token = token
         self.limit = -9999
+        self.debug = debug
 
         self.headers = {
             'X-Service-Key': self.token
@@ -35,7 +36,8 @@ class FootballSport(AbstractSport):
         if response.status_code == 401:
             raise ValueError(f"{response.headers.get('WWW-Authenticate')}")
         self.limit = response.headers.get("X-Service-Limit")
-        logger.info(f"Requests limit: {self.limit}")
+        if self.debug:
+            logger.info(f"Requests limit: {self.limit}")
         return response
 
     def statistics(self, match_id: str):
@@ -63,8 +65,9 @@ class FootballSport(AbstractSport):
         def get_statistics(fixture: dict):
             if fixture['statistics'] != "None":
                 data = self.statistics(fixture['statistics'])
-                logger.debug(f"Statistics for ID: {fixture['statistics']}. "
-                             f"Length: {len(data)}")
+                if self.debug:
+                    logger.debug(f"Statistics for ID: {fixture['statistics']}. "
+                                 f"Length: {len(data)}")
                 fixture['statistics'] = data
 
         # Basic
