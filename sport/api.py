@@ -11,23 +11,25 @@ from concurrent.futures import ThreadPoolExecutor
 logger = log(__name__)
 
 
+_FOOTBALL_URL = "https://static.data-provider.ru/api/v1/fsfootball"
+_BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
+_TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
+
+
 class FootballSport(AbstractSport):
 
-    def __init__(self, token: str, base_url:str="", debug=False):
+    def __init__(self, token: str, debug=False):
+        self.request_limit = None
+        self.reset_limit = None
         self.token = token
-        self.limit = -9999
         self.debug = debug
-
         self.headers = {
             'X-Service-Key': self.token
         }
-        if not base_url:
-            self.base_url = "https://static.data-provider.ru/api/v1/fsfootball"
-        else:
-            self.base_url = base_url
+        self.base_url = _FOOTBALL_URL
 
     def __len__(self):
-        return self.limit
+        return self.request_limit
 
     def _request(self, route: str):
         response = requests.get(self.base_url + route, headers=self.headers)
@@ -35,9 +37,10 @@ class FootballSport(AbstractSport):
             raise ValueError(f"Resource [{route}] not found!")
         if response.status_code == 401:
             raise ValueError(f"{response.headers.get('WWW-Authenticate')}")
-        self.limit = response.headers.get("X-Service-Limit")
+        self.request_limit = response.headers.get("X-Day-Limit-Value")
+        self.reset_limit = response.headers.get("X-Day-Limit-Reset")
         if self.debug:
-            logger.info(f"Requests limit: {self.limit}")
+            logger.info(f"Requests limit: {self.request_limit}")
         return response
 
     def statistics(self, match_id: str):
@@ -80,4 +83,15 @@ class FootballSport(AbstractSport):
                 pass
 
         return fixtures
-        
+
+
+class BasketballSport(FootballSport):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.base_url = _BASKETBALL_URL
+
+
+class TennisSport(FootballSport):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.base_url = _TENNIS_URL
