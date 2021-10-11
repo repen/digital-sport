@@ -6,6 +6,8 @@ from .abstract import AbstractSport
 import requests
 from .tool import log
 from concurrent.futures import ThreadPoolExecutor
+import json
+import csv
 
 
 logger = log(__name__)
@@ -14,6 +16,43 @@ logger = log(__name__)
 _FOOTBALL_URL = "https://static.data-provider.ru/api/v1/fsfootball"
 _BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
 _TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
+
+
+class FormatReport(list):
+
+    def csv_dump(self, path, encoding="utf8"):
+
+        with open(path, mode='w', encoding=encoding) as csv_file:
+            writer = csv.writer(csv_file)
+            headers = None
+            for row in self:
+                if isinstance(row, dict):
+                    if headers is None:
+                        writer.writerow(row.keys())
+                        headers = True
+                    writer.writerow(row.values())
+                else:
+                    writer.writerow(row)
+
+        return self
+
+
+    def json_dump(self, path, encoding="utf8"):
+        with open(path, "w", encoding=encoding) as f:
+            json.dump(self, f, indent=4, sort_keys=True)
+
+        return self
+
+
+def report_wrapper(f):
+
+    def wrapper(*args, **kwargs):
+        res = f(*args, **kwargs)
+        report_list = FormatReport(res)
+        return report_list
+
+    return wrapper
+
 
 
 class FootballSport(AbstractSport):
@@ -43,21 +82,25 @@ class FootballSport(AbstractSport):
             logger.info(f"Requests limit: {self.request_limit}")
         return response
 
+    @report_wrapper
     def statistics(self, match_id: str):
         route = "/statistics/" + match_id
         response = self._request(route)
         return response.json()
 
+    @report_wrapper
     def live(self):
         route = "/live"
         response = self._request(route)
         return response.json()
 
+    @report_wrapper
     def odds(self, match_id: str):
         route = "/odds/" + match_id
         response = self._request(route)
         return response.json()
 
+    @report_wrapper
     def h2h(self, match_id: str):
         route = "/h2h/" + match_id
         response = self._request(route)
