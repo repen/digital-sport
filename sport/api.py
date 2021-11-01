@@ -5,6 +5,7 @@ Licensed under the MIT License
 from .abstract import AbstractSport
 import requests
 from .tool import log
+from .search_center import H2hSearch
 from concurrent.futures import ThreadPoolExecutor
 import json
 import csv
@@ -18,7 +19,12 @@ _BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
 _TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
 
 
-class FormatReport(list):
+class FormatReport(list, H2hSearch):
+    
+    def __init__(self, ll, method_name, cls):
+        super(FormatReport, self).__init__(ll)
+        self.method_name = method_name
+        self.cls = cls
 
     def csv_dump(self, path, encoding="utf8"):
 
@@ -44,15 +50,19 @@ class FormatReport(list):
         return self
 
 
-def report_wrapper(f):
+def report_wrapper(name):
 
-    def wrapper(*args, **kwargs):
-        res = f(*args, **kwargs)
-        report_list = FormatReport(res)
-        return report_list
+    def _report_wrapper(f):
 
-    return wrapper
+        def wrapper(*args, **kwargs):
+            res = f(*args, **kwargs)
+            Self = args[0]
+            report_list = FormatReport(res, name, Self)
+            return report_list
 
+        return wrapper
+
+    return _report_wrapper
 
 
 class FootballSport(AbstractSport):
@@ -82,25 +92,25 @@ class FootballSport(AbstractSport):
             logger.info(f"Requests limit: {self.request_limit}")
         return response
 
-    @report_wrapper
+    @report_wrapper("statistics")
     def statistics(self, match_id: str):
         route = "/statistics/" + match_id
         response = self._request(route)
         return response.json()
 
-    @report_wrapper
+    @report_wrapper("live")
     def live(self):
         route = "/live"
         response = self._request(route)
         return response.json()
 
-    @report_wrapper
+    @report_wrapper("odds")
     def odds(self, match_id: str):
         route = "/odds/" + match_id
         response = self._request(route)
         return response.json()
 
-    @report_wrapper
+    @report_wrapper("h2h")
     def h2h(self, match_id: str):
         route = "/h2h/" + match_id
         response = self._request(route)
