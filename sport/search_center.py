@@ -1,27 +1,32 @@
 from typing import Callable, List
-from .interface import Ih2h, FootballMatch
+from .interface import Ih2h
 from functools import partial
+
+def pprint(string, match_id:str):
+    if match_id:
+        string = f"{match_id}: {string}"
+    print(string)
 
 
 class H2hSearch:
 
-    def search_last_result(self, pattern, team="", function:Callable=None):
+    def search_last_result(self, pattern, team="", function:Callable=pprint):
         if self.method_name == "h2h":
             self.h2h_search_last_result(pattern, team, function)
         if self.method_name == "live":
             self.live_search_last_result(pattern, team, function)
 
     def live_search_last_result(self, pattern, team, function):
-        fixtures = [FootballMatch(**x) for x in self]
+        fixtures = [x for x in self]
 
         for fixture in fixtures:
-            h2h_list = self.cls.h2h(fixture.match_id)
-            h2h_list.search_last_result(pattern, team, partial(function, match_id=fixture.match_id))
+            h2h_list = self.cls.h2h(fixture['match_id'])
+            h2h_list.search_last_result(pattern, team, partial(function, match_id=fixture['match_id']))
 
 
     def get_result_h2h(self, team_name,
                    pattern, h2h_list: List[Ih2h], function):
-        template = "Found! Team {team} [{pattern}] [{place} games]"
+        template = "Found! Team [{team}] [pattern:{pattern}] [{place} games]"
         place = ""
         h2h_list = [x for x in h2h_list if x.match_type == team_name]
         if ":" in pattern:
@@ -31,7 +36,9 @@ class H2hSearch:
         if result:
             if function:
                 function(template.format(
-                    team=team_name, pattern=pattern, place=place
+                    team=team_name.replace("Last matches:", ""),
+                    pattern=pattern.replace(":away", "").replace(":home", ""),
+                    place=place
                 ))
 
 
