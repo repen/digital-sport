@@ -8,3 +8,4 @@ example.py
 build
 *.egg-info
 dist
+tasks.md
