@@ -1,6 +1,7 @@
 from typing import Callable, List
-from .interface import Ih2h
+from .interface import Ih2h, IStatistics
 from functools import partial
+
 
 def pprint(string, match_id:str):
     if match_id:
@@ -9,18 +10,19 @@ def pprint(string, match_id:str):
 
 
 class H2hSearch:
+    """Класс который ищет последние матчи по условию
+    fixtures.search_last_result("w w w:home", team="home")
+    """
 
-    def search_last_result(self, pattern, team="", function:Callable=pprint):
-        if self.method_name == "h2h":
-            self.h2h_search_last_result(pattern, team, function)
-        if self.method_name == "live":
-            self.live_search_last_result(pattern, team, function)
+    def __init__(self, objects_list, p_cls):
+        self.objects_list = objects_list
+        self.parent_cls = p_cls
 
-    def live_search_last_result(self, pattern, team, function):
-        fixtures = [x for x in self]
+    def live_search_last_result(self, pattern, team, function=pprint):
+        fixtures = [x for x in self.objects_list]
 
         for fixture in fixtures:
-            h2h_list = self.cls.h2h(fixture['match_id'])
+            h2h_list = self.parent_cls.h2h(fixture['match_id'])
             h2h_list.search_last_result(pattern, team, partial(function, match_id=fixture['match_id']))
 
 
@@ -43,7 +45,7 @@ class H2hSearch:
 
 
     def h2h_search_last_result(self, pattern, team="", function:Callable=None):
-        h2h_list: List[Ih2h] = [Ih2h(**x) for x in self if x['place']]
+        h2h_list: List[Ih2h] = [Ih2h(**x) for x in self.objects_list if x['place']]
         _team = {}
         for x in h2h_list:
             _team[x.match_type] = None
@@ -75,3 +77,41 @@ class H2hSearch:
             if i == quantity:
                 return True
 
+
+class SearchStatistics:
+    """Класс который ищет нужную статистику по различным условиям
+    .search_statistics("Ball Possession", period="Match", expression=">70", function=pprint)
+    """
+
+    def __init__(self, statistics: List[IStatistics], name_statistics,
+                 period=None, expression=None, function=None):
+        self.statistics = statistics
+        self.name_statistics = name_statistics
+        self.f_period = period
+        self.f_expression = expression
+        self.function = function
+        self.filters = {k:v for k,v in self.__dict__.items() if "f_" in k and v}
+        self.quantity = len(self.filters)
+        self.accum = 0
+
+    def get_update(self, statistics: IStatistics):
+        self.function(statistics)
+
+    def run(self):
+        for statistics in self.statistics:
+            breakpoint()
+            if statistics.get_name(self.name_statistics):
+                for key, value in self.filters.items():
+                    result = getattr(statistics, key.replace("f_", "get_"))(value)
+                    if result:
+                        self.accum+=1
+                    else:
+                        break
+
+                if self.accum == self.quantity:
+                    self.get_update(statistics)
+                    self.accum = 0
+
+
+    def __call__(self, *args, **kwargs):
+        self.run()

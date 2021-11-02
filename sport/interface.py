@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 
 class IBase:
@@ -45,3 +46,52 @@ class FootballMatch(IBase):
     home_goals_before45: int
     away_goals_before45: int
     statistics: str
+
+
+@dataclass
+class IStatistics(IBase):
+    match_id: str
+    snapshot_time: int
+    match_period: str
+    home_value: str
+    name: str
+    away_value: str
+
+    def get_name(self, name):
+        return self.name == name
+
+    def get_period(self, name):
+        return self.match_period == name
+
+    def get_expression(self, pattern):
+        """
+        Patterns:
+            home>10
+            home=50
+            away<50
+            <10
+
+        """
+        home_value = float(self.home_value.replace("%", "").strip())
+        away_value = float(self.away_value.replace("%", "").strip())
+        # =============
+        patterns = re.search(r"^(.*?)(>|=|<)(.*)$", pattern)
+        groups = patterns.groups()
+        groups = tuple(filter(lambda x: x, groups))
+
+        if len(groups) == 3:
+            target, mark, value = groups
+            team_value = home_value
+            if target == "away":
+                team_value = away_value
+            template = "{team_value} {mark} {val}"
+            return eval(template.format(team_value=team_value,
+                                        mark=mark.replace("=", "=="), val=float(value.strip())))
+        elif len(groups) == 2:
+            mark, value = groups
+            mark = mark.replace("=", "==")
+            template01 = f"{home_value} {mark} {float(value.strip())}"
+            template02 = f"{away_value} {mark} {float(value.strip())}"
+            return eval(template01) or eval(template02)
+        else:
+            return False

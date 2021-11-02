@@ -2,13 +2,17 @@
 Copyright (c) 2021 Plugin Andrey (9keepa@gmail.com)
 Licensed under the MIT License
 """
+from typing import List
 from .abstract import AbstractSport
 import requests
 from .tool import log
-from .search_center import H2hSearch
+from .search_center import H2hSearch, SearchStatistics
+from .report_service import ReportService
+from .interface import IStatistics
 from concurrent.futures import ThreadPoolExecutor
-import json
-import csv
+
+import requests_cache
+requests_cache.install_cache()
 
 
 logger = log(__name__)
@@ -18,37 +22,37 @@ _BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
 _TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
 
 
-class FormatReport:
-
-    def csv_dump(self, path, encoding="utf8"):
-
-        with open(path, mode='w', encoding=encoding) as csv_file:
-            writer = csv.writer(csv_file)
-            headers = None
-            for row in self:
-                if isinstance(row, dict):
-                    if headers is None:
-                        writer.writerow(row.keys())
-                        headers = True
-                    writer.writerow(row.values())
-                else:
-                    writer.writerow(row)
-
-        return self
-
-
-    def json_dump(self, path, encoding="utf8"):
-        with open(path, "w", encoding=encoding) as f:
-            json.dump(self, f, indent=4, sort_keys=True)
-
-        return self
-
-
-class ListWrapper(list, FormatReport, H2hSearch):
+class ListWrapper(list):
     def __init__(self, ll, method_name, cls):
         super(ListWrapper, self).__init__(ll)
         self.method_name = method_name
         self.cls = cls
+
+    def search_statistics(self, name_statistics, period=None, expression=None, function=None):
+        if self.method_name == "statistics":
+            i_statistics:List[IStatistics]  = [IStatistics(**x) for x in self]
+            SearchStatistics(i_statistics, name_statistics, period, expression, function).run()
+
+        if self.method_name == "live":
+            for item in self:
+                if item['statistics'] == "None":
+                    continue
+                i_statistics = [IStatistics(**x) for x in self.cls.statistics(item['match_id'])]
+                SearchStatistics(i_statistics, name_statistics, period, expression, function).run()
+
+
+
+    def search_last_result(self, *args, **kwargs):
+        if self.method_name == "h2h":
+            H2hSearch(self, self.cls).h2h_search_last_result(*args, **kwargs)
+        if self.method_name == "live":
+            H2hSearch(self, self.cls).live_search_last_result(*args, **kwargs)
+
+    def csv_dump(self, *args, **kwargs):
+        return ReportService(self).csv_dump(*args, **kwargs)
+
+    def json_dump(self, *args, **kwargs):
+        return ReportService(self).json_dump(*args, **kwargs)
 
 
 def list_wrapper(name):
