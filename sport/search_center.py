@@ -99,7 +99,6 @@ class SearchStatistics:
 
     def run(self):
         for statistics in self.statistics:
-            breakpoint()
             if statistics.get_name(self.name_statistics):
                 for key, value in self.filters.items():
                     result = getattr(statistics, key.replace("f_", "get_"))(value)
