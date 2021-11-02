@@ -13,18 +13,12 @@ import csv
 
 logger = log(__name__)
 
-
 _FOOTBALL_URL = "https://static.data-provider.ru/api/v1/fsfootball"
 _BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
 _TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
 
 
-class FormatReport(list, H2hSearch):
-    
-    def __init__(self, ll, method_name, cls):
-        super(FormatReport, self).__init__(ll)
-        self.method_name = method_name
-        self.cls = cls
+class FormatReport:
 
     def csv_dump(self, path, encoding="utf8"):
 
@@ -50,19 +44,26 @@ class FormatReport(list, H2hSearch):
         return self
 
 
-def report_wrapper(name):
+class ListWrapper(list, FormatReport, H2hSearch):
+    def __init__(self, ll, method_name, cls):
+        super(FormatReport, self).__init__(ll)
+        self.method_name = method_name
+        self.cls = cls
 
-    def _report_wrapper(f):
+
+def list_wrapper(name):
+
+    def _list_wrapper(f):
 
         def wrapper(*args, **kwargs):
             res = f(*args, **kwargs)
             Self = args[0]
-            report_list = FormatReport(res, name, Self)
+            report_list = ListWrapper(res, name, Self)
             return report_list
 
         return wrapper
 
-    return _report_wrapper
+    return _list_wrapper
 
 
 class FootballSport(AbstractSport):
@@ -92,25 +93,25 @@ class FootballSport(AbstractSport):
             logger.info(f"Requests limit: {self.request_limit}")
         return response
 
-    @report_wrapper("statistics")
+    @list_wrapper("statistics")
     def statistics(self, match_id: str):
         route = "/statistics/" + match_id
         response = self._request(route)
         return response.json()
 
-    @report_wrapper("live")
+    @list_wrapper("live")
     def live(self):
         route = "/live"
         response = self._request(route)
         return response.json()
 
-    @report_wrapper("odds")
+    @list_wrapper("odds")
     def odds(self, match_id: str):
         route = "/odds/" + match_id
         response = self._request(route)
         return response.json()
 
-    @report_wrapper("h2h")
+    @list_wrapper("h2h")
     def h2h(self, match_id: str):
         route = "/h2h/" + match_id
         response = self._request(route)
