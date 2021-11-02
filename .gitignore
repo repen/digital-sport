@@ -9,3 +9,4 @@ build
 *.egg-info
 dist
 tasks.md
+http_cache.sqlite
