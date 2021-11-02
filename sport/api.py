@@ -46,7 +46,7 @@ class FormatReport:
 
 class ListWrapper(list, FormatReport, H2hSearch):
     def __init__(self, ll, method_name, cls):
-        super(FormatReport, self).__init__(ll)
+        super(ListWrapper, self).__init__(ll)
         self.method_name = method_name
         self.cls = cls
 
