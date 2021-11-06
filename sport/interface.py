@@ -95,3 +95,18 @@ class IStatistics(IBase):
             return eval(template01) or eval(template02)
         else:
             return False
+
+    def __gt__(self, other):
+        home_val = int(self.home_value.replace("%", ""))
+        away_val = int(self.away_value.replace("%", ""))
+
+        other_home_val = int(other.home_value.replace("%", ""))
+        other_away_val = int(other.away_value.replace("%", ""))
+
+        # if home_val > away_val:
+        #     return home_val > other_home_val
+        # else:
+        #     return away_val > other_away_val
+        return home_val + away_val > other_home_val + other_away_val
+        # if self.home_value
+        # return self.away_value > other.y
