@@ -11,8 +11,9 @@ from .report_service import ReportService
 from .interface import IStatistics
 from concurrent.futures import ThreadPoolExecutor
 
-import requests_cache
-requests_cache.install_cache()
+# delete cache!
+# import requests_cache
+# requests_cache.install_cache()
 
 
 logger = log(__name__)
@@ -28,7 +29,11 @@ class ListWrapper(list):
         self.method_name = method_name
         self.cls = cls
 
+    def statistics_length(self):
+        return len([x for x in self if x['statistics'] != "None"])
+
     def search_statistics(self, name_statistics, period=None, expression=None, function=None):
+        """Поиск статистики"""
         if self.method_name == "statistics":
             i_statistics:List[IStatistics]  = [IStatistics(**x) for x in self]
             SearchStatistics(i_statistics, name_statistics, period, expression, function).run()
@@ -40,9 +45,27 @@ class ListWrapper(list):
                 i_statistics = [IStatistics(**x) for x in self.cls.statistics(item['match_id'])]
                 SearchStatistics(i_statistics, name_statistics, period, expression, function).run()
 
+    def thread_search_statistics(self, name_statistics, period=None,
+                                 expression=None, function=None, workers=4):
+        """Поиск статистики многопоточный"""
+        fixtures = [x for x in self if x['statistics'] != "None"]
+        statistics: List[List[IStatistics]] = []
 
+        def func(fixture):
+            stats_list = self.cls.statistics(fixture['match_id'])
+            statistics.append([IStatistics(**x) for x in stats_list])
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            for _ in executor.map(func, fixtures):
+                pass
+
+        for i_stat in statistics:
+            SearchStatistics(i_stat, name_statistics, period, expression, function).run()
 
     def search_last_result(self, *args, **kwargs):
+        """поиск последних игр по определенным критериям
+        Требуется рефакторинг. Сделай как будет время!
+        """
         if self.method_name == "h2h":
             H2hSearch(self, self.cls).h2h_search_last_result(*args, **kwargs)
         if self.method_name == "live":
