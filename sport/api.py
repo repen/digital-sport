@@ -35,7 +35,6 @@ class ListWrapper(list):
         Для батскетбола и тениса нужно реализовать поиск по другим полям
         self.cls.__class__.__name__ поможет определить из какого класса произошел вызов
         """
-        breakpoint()
         if isinstance(home_goals, str):
             return ListWrapper(
                 [x for x in self if re.search(home_goals, f"{x['home_goals']}-{x['away_goals']}")],
