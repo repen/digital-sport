@@ -10,6 +10,7 @@ from .search_center import H2hSearch, SearchStatistics
 from .report_service import ReportService
 from .interface import IStatistics
 from concurrent.futures import ThreadPoolExecutor
+import re
 
 # delete cache!
 # import requests_cache
@@ -28,6 +29,43 @@ class ListWrapper(list):
         super(ListWrapper, self).__init__(ll)
         self.method_name = method_name
         self.cls = cls
+
+    def filter_match_score(self, home_goals, away_goals=0):
+        """Фильтр по счету матча
+        Для батскетбола и тениса нужно реализовать поиск по другим полям
+        self.cls.__class__.__name__ поможет определить из какого класса произошел вызов
+        """
+        breakpoint()
+        if isinstance(home_goals, str):
+            return ListWrapper(
+                [x for x in self if re.search(home_goals, f"{x['home_goals']}-{x['away_goals']}")],
+                self.method_name, self.cls
+            )
+
+        if isinstance(home_goals, tuple) and isinstance(away_goals, tuple):
+            return ListWrapper(
+                [x for x in self if x['home_goals'] in home_goals and x["away_goals"] in away_goals],
+                self.method_name, self.cls
+            )
+        
+        if isinstance(home_goals, int) and isinstance(away_goals, int):
+        
+            return ListWrapper(
+                [x for x in self if x['home_goals'] == home_goals and x["away_goals"] == away_goals],
+                self.method_name, self.cls
+            )
+        
+        raise ValueError("Unknown filter")
+
+    def filter_elapsed_time(self, start:int, end:int):
+        """Фильтр по времени матча
+        Для батскетбола и тениса нужно реализовать поиск по другим полям
+        self.cls.__class__.__name__ поможет определить из какого класса произошел вызов
+        """
+        return ListWrapper(
+            [x for x in self if start <= x["elapsed_time"] <= end],
+            self.method_name, self.cls
+        )
 
     def statistics_length(self):
         return len([x for x in self if x['statistics'] != "None"])
