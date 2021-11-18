@@ -11,6 +11,7 @@ from .report_service import ReportService
 from .interface import IStatistics
 from concurrent.futures import ThreadPoolExecutor
 import re
+from functools import partial
 
 # delete cache!
 # import requests_cache
@@ -28,7 +29,7 @@ class ListWrapper(list):
     def __init__(self, ll, method_name, cls):
         super(ListWrapper, self).__init__(ll)
         self.method_name = method_name
-        self.cls = cls
+        self.cls: FootballSport = cls
 
     def filter_match_score(self, home_goals, away_goals=0):
         """Фильтр по счету матча
@@ -114,6 +115,40 @@ class ListWrapper(list):
     def json_dump(self, *args, **kwargs):
         return ReportService(self).json_dump(*args, **kwargs)
 
+    def aggregate_all_data(self, workers=20):
+        """Создаем более сложный объект из live statistics odds h2h
+        {"match_id":[]}
+        """
+
+        def func_statistics(fixture):
+            fixture["statistics"] = self.cls.statistics(fixture["match_id"])
+
+        def func_odds(fixture):
+            try:
+                fixture["odds"] = self.cls.odds(fixture["match_id"])
+            except ValueError:
+                pass
+
+        def func_h2h(fixture):
+            try:
+                fixture['h2h'] = self.cls.h2h(fixture["match_id"])
+            except ValueError:
+                pass
+
+        def func(f):
+            f()
+
+        tasks = []
+        tasks.extend([partial(func_statistics, x) for x in self if x['statistics'] != "None"])
+        tasks.extend([partial(func_odds, x) for x in self])
+        tasks.extend([partial(func_h2h, x) for x in self])
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            for _ in executor.map(func, tasks):
+                pass
+
+        return self
+
 
 def list_wrapper(name):
 
@@ -128,6 +163,21 @@ def list_wrapper(name):
         return wrapper
 
     return _list_wrapper
+
+
+def cache(f):
+    _cache = dict()
+
+    def wrapper(*args, **kwargs):
+        key = args[1]
+        if key in _cache:
+            res = _cache[key]
+        else:
+            res = f(*args, **kwargs)
+            _cache[key] = res
+        return res
+
+    return wrapper
 
 
 class FootballSport(AbstractSport):
@@ -170,12 +220,14 @@ class FootballSport(AbstractSport):
         return response.json()
 
     @list_wrapper("odds")
+    @cache
     def odds(self, match_id: str):
         route = "/odds/" + match_id
         response = self._request(route)
         return response.json()
 
     @list_wrapper("h2h")
+    @cache
     def h2h(self, match_id: str):
         route = "/h2h/" + match_id
         response = self._request(route)
