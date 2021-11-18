@@ -115,7 +115,7 @@ class ListWrapper(list):
     def json_dump(self, *args, **kwargs):
         return ReportService(self).json_dump(*args, **kwargs)
 
-    def aggregate_all_data(self, workers=20):
+    def aggregate_data(self, target: str, workers=20):
         """Создаем более сложный объект из live statistics odds h2h
         {"match_id":[]}
         """
@@ -139,9 +139,14 @@ class ListWrapper(list):
             f()
 
         tasks = []
-        tasks.extend([partial(func_statistics, x) for x in self if x['statistics'] != "None"])
-        tasks.extend([partial(func_odds, x) for x in self])
-        tasks.extend([partial(func_h2h, x) for x in self])
+        if "statistics" in target:
+            tasks.extend([partial(func_statistics, x) for x in self if x['statistics'] != "None"])
+
+        if "odds" in target:
+            tasks.extend([partial(func_odds, x) for x in self])
+
+        if "h2h" in target:
+            tasks.extend([partial(func_h2h, x) for x in self])
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
             for _ in executor.map(func, tasks):
@@ -220,14 +225,12 @@ class FootballSport(AbstractSport):
         return response.json()
 
     @list_wrapper("odds")
-    @cache
     def odds(self, match_id: str):
         route = "/odds/" + match_id
         response = self._request(route)
         return response.json()
 
     @list_wrapper("h2h")
-    @cache
     def h2h(self, match_id: str):
         route = "/h2h/" + match_id
         response = self._request(route)
