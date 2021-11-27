@@ -121,7 +121,10 @@ class ListWrapper(list):
         """
 
         def func_statistics(fixture):
-            fixture["statistics"] = self.cls.statistics(fixture["match_id"])
+            try:
+                fixture["statistics"] = self.cls.statistics(fixture["match_id"])
+            except ValueError:
+                pass
 
         def func_odds(fixture):
             try:
