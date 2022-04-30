@@ -7,12 +7,16 @@ import unittest
 from sport.api import FootballSport
 import random
 import requests
-# import sys
+import sys
 # sys.stderr = open("test_error.log", 'a')
 
 TOKEN = os.getenv("TOKEN")
 if TOKEN is None:
     raise ValueError("Sorry! Add the API token in the environment.")
+
+DUMP_FILE = os.getenv("DUMP_FILE")
+if DUMP_FILE:
+    sys.stderr = open(DUMP_FILE, 'a')
 
 class TestService(unittest.TestCase):
 
