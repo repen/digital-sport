@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2022 Plugin Andrey (9keepa@gmail.com)
+Licensed under the MIT License
+"""
 from dataclasses import dataclass
 import re
 

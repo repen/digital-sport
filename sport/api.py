@@ -1,5 +1,5 @@
 """
-Copyright (c) 2021 Plugin Andrey (9keepa@gmail.com)
+Copyright (c) 2022 Plugin Andrey (9keepa@gmail.com)
 Licensed under the MIT License
 """
 from typing import List
@@ -13,13 +13,8 @@ from concurrent.futures import ThreadPoolExecutor
 import re
 from functools import partial
 
-# delete cache!
-# import requests_cache
-# requests_cache.install_cache()
-
 
 logger = log(__name__)
-
 _FOOTBALL_URL = "https://static.data-provider.ru/api/v1/fsfootball"
 _BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
 _TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
@@ -171,21 +166,6 @@ def list_wrapper(name):
         return wrapper
 
     return _list_wrapper
-
-
-def cache(f):
-    _cache = dict()
-
-    def wrapper(*args, **kwargs):
-        key = args[1]
-        if key in _cache:
-            res = _cache[key]
-        else:
-            res = f(*args, **kwargs)
-            _cache[key] = res
-        return res
-
-    return wrapper
 
 
 class FootballSport(AbstractSport):
