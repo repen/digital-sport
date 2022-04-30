@@ -170,7 +170,7 @@ def list_wrapper(name):
 
 class FootballSport(AbstractSport):
 
-    def __init__(self, token: str, debug=False):
+    def __init__(self, token: str, debug=False, requests_params=None):
         self.request_limit = None
         self.reset_limit = None
         self.token = token
@@ -179,12 +179,14 @@ class FootballSport(AbstractSport):
             'X-Service-Key': self.token
         }
         self.base_url = _FOOTBALL_URL
+        self.requests_params = requests_params if requests_params else dict()
 
     def __len__(self):
         return self.request_limit
 
     def _request(self, route: str):
-        response = requests.get(self.base_url + route, headers=self.headers)
+        response = requests.get(self.base_url + route,
+                                headers=self.headers, **self.requests_params)
         if response.status_code == 404:
             raise ValueError(f"Resource [{route}] not found!")
         if response.status_code == 401:
