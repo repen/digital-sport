@@ -3,8 +3,8 @@ Copyright (c) 2022 Plugin Andrey (9keepa@gmail.com)
 Licensed under the MIT License
 """
 from typing import Callable, List
-from .interface import Ih2h, IStatistics
 from functools import partial
+from .interface import Ih2h, IStatistics
 
 
 def pprint(string, match_id:str):

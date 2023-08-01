@@ -2,37 +2,32 @@
 
 Получение структурированной информации по спортивным  live событиям.
 
-Очень важно, все данные доступны в live режиме. 
+Очень важно, все данные доступны в live режиме. Данные только по футболу.
 
 Нельзя получать данные по матчам которые уже:
 - сыграны
 - запланированы
 
+
 ### Установка
 
 1. `pip install digital-sport`
 
-2. Для работы библиотеки нужен апи токен, который дает доступ к информации.
-	
 
-Апи токен можно получить:
+Вопросы по работе библиотеки:
+
+- help in telegram `@sport_user`
     
-- в телеграм боте @sport_api_bot (/help).
-- на сайте [data-provider.ru](https://data-provider.ru).
-
-#### Установить токен
-
-```
-from sport.api import FootballSport
-
-token = "Your token"
-football = FootballSport(token, debug=True)
-```
 
 #### Получить live матчи.
 
 ```
+from sport import FootballSport
+
+football = FootballSport()
+
 fixtures = football.live()
+
 print(fixtures)
 ```
 
@@ -72,3 +67,8 @@ print(data)
 ```
 fixtures = football.add_statistics(fixtures)
 ```
+
+#### Цели
+
+- [ ] Реализовать интерфейс к live событиям по теннису.
+- [ ] Реализовать интерфейс к live событиям по баскетболу.

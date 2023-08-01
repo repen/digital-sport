@@ -11,8 +11,6 @@ import sys
 # sys.stderr = open("test_error.log", 'a')
 
 TOKEN = os.getenv("TOKEN")
-if TOKEN is None:
-    raise ValueError("Sorry! Add the API token in the environment.")
 
 DUMP_FILE = os.getenv("DUMP_FILE")
 if DUMP_FILE:
@@ -27,10 +25,6 @@ class TestService(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_01_bad_token(self):
-        football = FootballSport("bad token")
-        with self.assertRaises(ValueError):
-            football.live()
 
     def test_02_good_token(self):
         football = FootballSport(TOKEN)

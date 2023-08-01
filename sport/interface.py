@@ -2,30 +2,31 @@
 Copyright (c) 2022 Plugin Andrey (9keepa@gmail.com)
 Licensed under the MIT License
 """
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass, asdict
 
 
+@dataclass
 class IBase:
 
     def to_dict(self):
-        return self.__dict__
+        return asdict(self)
 
 
 @dataclass
 class Ih2h(IBase):
-    match_id: str
-    league: str
-    country: str
-    start_time: int
-    home_team_name: str
-    away_team_name: str
-    home_team_goals: int
-    away_team_goals: int
-    match_type: str
-    snapshot_time: int
-    result: str
-    place: str
+    match_id: str               # Идентификатор матча
+    away_team_goals: int        # Количество голов команды гостей (например, 2)
+    away_team_name: str         # Название команды гостей (например, "Paris SG")
+    country: str                # Страна, в которой проходил матч (например, "World")
+    home_team_goals: int        # Количество голов домашней команды (например, 3)
+    home_team_name: str         # Название домашней команды (например, "Cerezo Osaka")
+    league: str                 # Название лиги или турнира, в котором проходил матч (например, "Club Friendly")
+    match_type: str             # Тип матча (например, "Last matches: Paris SG")
+    place: str                  # Место проведения матча (например, "" - пустая строка, если место не указано)
+    result: str                 # Результат матча (например, "" - пустая строка, если результат не указан)
+    snapshot_time: int          # Время снимка данных в формате UNIX timestamp
+    start_time: int             # Время начала матча в формате UNIX timestamp
 
     def win_draw_lose(self, pattern: str) -> bool:
         return pattern == self.result
@@ -35,31 +36,32 @@ class Ih2h(IBase):
 
 
 @dataclass
-class FootballMatch(IBase):
-    match_id: str
-    start_time: int
-    home_team: str
-    away_team: str
-    league: str
-    country: str
-    home_goals: int
-    away_goals: int
-    elapsed_time: int
-    extra_time: str
-    match_status: str
-    home_goals_before45: int
-    away_goals_before45: int
-    statistics: str
+class IFootballMatch(IBase):
+    match_id: str                 # Идентификатор матча
+    away_goals: int               # Количество голов у команды гостей (например, 1)
+    away_goals_before45: int      # Количество голов у команды гостей до 45-й минуты матча (например, 1)
+    away_team: str                # Название команды гостей (например, "Flamengo RJ U19")
+    country: str                  # Страна, в которой проходит матч (например, "WORLD")
+    elapsed_time: int             # Прошедшее время матча в минутах (например, 82)
+    extra_time: str               # Время дополнительного времени (например, "" - пустая строка, если нет дополнительного времени)
+    home_goals: int               # Количество голов у домашней команды (например, 0)
+    home_goals_before45: int      # Количество голов у домашней команды до 45-й минуты матча (например, 0)
+    home_team: str                # Название домашней команды (например, "Sparta Prague U19")
+    league: str                   # Название лиги или турнира, в котором проходит матч (например, "CEE Cup - Play Offs")
+    match_status: str             # Статус матча
+    statistics: str               # Идентификатор статистики матча (например, "r9k7lFjG")
+    start_time: int               # Время начала матча в формате UNIX timestamp
 
 
 @dataclass
 class IStatistics(IBase):
-    match_id: str
-    snapshot_time: int
-    match_period: str
-    home_value: str
-    name: str
-    away_value: str
+    match_id: str           # Идентификатор матча
+    snapshot_time: int      # Время снимка данных в формате UNIX timestamp
+    home_value: str         # Значение статистики для домашней команды (например, "63%")
+    away_value: str         # Значение статистики мячом для гостевой команды (например, "37%")
+    match_period: str       # Период матча, к которому относится статистика (например, "Match")
+    name: str               # Название статистики (например, "Ball Possession")
+
 
     def get_name(self, name):
         return self.name == name
@@ -114,3 +116,15 @@ class IStatistics(IBase):
         return home_val + away_val > other_home_val + other_away_val
         # if self.home_value
         # return self.away_value > other.y
+
+
+@dataclass
+class IMarketData:
+    bookmaker: str          # Имя букмекера, предоставившего данные
+    market_name: str        # Название рынка ставок (например, "1Х2" - результат матча)
+    market_type: str        # Тип рынка (например, "1" - одиночная ставка)
+    match_id: str           # Идентификатор матча
+    new_value: str          # Новое значение коэффициента (например, после обновления)
+    old_value: str          # Старое значение коэффициента (например, до обновления)
+    period: str             # Период события, к которому относится рынок (например, "Осн. время" - основное время матча)
+    snapshot_time: int      # Время снимка данных в формате UNIX timestamp

@@ -2,23 +2,26 @@
 Copyright (c) 2022 Plugin Andrey (9keepa@gmail.com)
 Licensed under the MIT License
 """
-from typing import List
-from .abstract import AbstractSport
+import re
 import requests
+from typing import List
+from functools import partial
+from concurrent.futures import ThreadPoolExecutor
+from .abstract import AbstractSport
 from .tool import log
 from .search_center import H2hSearch, SearchStatistics
 from .report_service import ReportService
 from .interface import IStatistics
-from concurrent.futures import ThreadPoolExecutor
-import re
-from functools import partial
 
 
 logger = log(__name__)
-_FOOTBALL_URL = "https://static.data-provider.ru/api/v1/fsfootball"
-_BASKETBALL_URL = "https://static.data-provider.ru/api/v1/fsbasketball"
-_TENNIS_URL = "https://static.data-provider.ru/api/v1/fstennis"
+_FOOTBALL_URL = "http://82.146.63.207:1080/api/v1/flashscore_football"
+_BASKETBALL_URL = None
+_TENNIS_URL = None
 
+
+class TemporaryNotAvailableError(Exception):
+    pass
 
 class ListWrapper(list):
     def __init__(self, ll, method_name, cls):
@@ -170,7 +173,7 @@ def list_wrapper(name):
 
 class FootballSport(AbstractSport):
 
-    def __init__(self, token: str, debug=False, requests_params=None):
+    def __init__(self, token: str="Free-token", debug=False, requests_params=None):
         self.request_limit = None
         self.reset_limit = None
         self.token = token
@@ -193,8 +196,8 @@ class FootballSport(AbstractSport):
             raise ValueError(f"{response.headers.get('WWW-Authenticate')}")
         self.request_limit = response.headers.get("X-Day-Limit-Value")
         self.reset_limit = response.headers.get("X-Day-Limit-Reset")
-        if self.debug:
-            logger.info(f"Requests limit: {self.request_limit}")
+        if False:
+            logger.debug(f"Requests limit: {self.request_limit}")
         return response
 
     @list_wrapper("statistics")
@@ -247,9 +250,11 @@ class BasketballSport(FootballSport):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.base_url = _BASKETBALL_URL
+        raise TemporaryNotAvailableError("the class is temporarily unavailable")
 
 
 class TennisSport(FootballSport):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.base_url = _TENNIS_URL
+        raise TemporaryNotAvailableError("the class is temporarily unavailable")
