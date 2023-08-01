@@ -1,8 +1,8 @@
 # Импорт недавно установленного пакета setuptools.
 # Upload package to PyPi.
-# python3 setup.py sdist bdist_wheel
-# python3 -m twine upload --repository testpypi dist/*
-# python3 -m twine upload --repository pypi dist/*
+# python setup.py sdist bdist_wheel
+# python -m twine upload --repository testpypi dist/*
+# python -m twine upload --repository pypi dist/*
 from setuptools import setup
 
 # Открытие README.md и присвоение его long_description.
@@ -14,7 +14,7 @@ setup(
     # Имя дистрибутива пакета. Оно должно быть уникальным, поэтому добавление вашего имени пользователя в конце является обычным делом.
     name="digital-sport",
     # Номер версии вашего пакета. Обычно используется семантическое управление версиями.
-    version="0.2.0",
+    version="0.2.1",
     # Имя автора.
     author="Andrey Plugin",
     # Его почта.

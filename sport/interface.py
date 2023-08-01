@@ -119,7 +119,7 @@ class IStatistics(IBase):
 
 
 @dataclass
-class IMarketData:
+class IMarketData(IBase):
     bookmaker: str          # Имя букмекера, предоставившего данные
     market_name: str        # Название рынка ставок (например, "1Х2" - результат матча)
     market_type: str        # Тип рынка (например, "1" - одиночная ставка)
