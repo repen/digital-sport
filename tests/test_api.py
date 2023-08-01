@@ -4,7 +4,7 @@ python -m unittest tests/test_api.py
 """
 import os
 import unittest
-from sport.api import FootballSport
+from sport import FootballSport
 import random
 import requests
 import sys

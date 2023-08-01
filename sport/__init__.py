@@ -1,2 +1,2 @@
-from .api import FootballSport as Football
+from .api import FootballSport
 from .interface import IFootballMatch, IStatistics, Ih2h, IMarketData
